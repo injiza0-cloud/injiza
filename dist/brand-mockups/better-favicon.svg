@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="192" height="192" viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="g1" x1="0" x2="1">
+      <stop offset="0%" stop-color="#FFD54A"/>
+      <stop offset="100%" stop-color="#FFB74D"/>
+    </linearGradient>
+  </defs>
+  <rect width="100%" height="100%" rx="24" fill="#0f172a" />
+  <circle cx="96" cy="80" r="36" fill="url(#g1)" stroke="#fff" stroke-opacity="0.12" stroke-width="2" />
+  <g text-anchor="middle" font-family="Inter, Arial, sans-serif">
+    <text x="96" y="92" font-size="28" font-weight="800" fill="#6b2f00">₹</text>
+    <text x="96" y="150" font-size="16" font-weight="700" fill="#cbd5e1">injiza</text>
+  </g>
+</svg>

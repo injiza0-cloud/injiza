@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="192" height="192" viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
+  <rect width="100%" height="100%" rx="28" fill="#00A651" />
+  <circle cx="96" cy="72" r="36" fill="#ffffff" opacity="0.12" />
+  <g fill="#fff" font-family="Inter, Arial, sans-serif" text-anchor="middle">
+    <text x="96" y="88" font-size="56" font-weight="800" fill="#fff">I</text>
+    <text x="96" y="140" font-size="18" font-weight="700" fill="#e6ffe9">injiza</text>
+  </g>
+</svg>

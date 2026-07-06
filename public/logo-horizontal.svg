@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="72" viewBox="0 0 320 72">
+  <rect x="0" y="0" width="72" height="72" rx="16" fill="#00A651" />
+  <text x="36" y="44" font-family="Inter, Arial, sans-serif" font-size="36" font-weight="800" fill="#fff" text-anchor="middle">I</text>
+  <g transform="translate(92,44)">
+    <text x="0" y="0" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="700" fill="#0b1220">injiza</text>
+  </g>
+</svg>
