@@ -166,18 +166,25 @@
       </div>
 
       <div class="sidebar-content">
-        <div class="scanner-steps">
+        <div class="scanner-steps premium-panel">
+          <div class="panel-badge">AI verification • secure</div>
           <h4>⚠️ Strict Verification Required</h4>
-          <p>Your receipt MUST match EXACTLY the format shown below. Any other format will be REJECTED.</p>
-          <h5 style="color: #10b981; margin-top: 1rem;">Exact Required Format:</h5>
-          <pre style="background: rgba(0,0,0,0.3); padding: 0.75rem; border-radius: 8px; font-size: 0.8rem; overflow: auto;">TxId:[VALUE]*S*Your payment of 350 RWF to Jireh Faith 1921803 was completed at [DATE] [TIME]. Balance: [AMOUNT] RWF. Fee [AMOUNT] RWF.*EN#</pre>
-          <ul style="margin-top: 1rem;">
-            <li>✅ Receipt MUST start with TxId:</li>
-            <li>✅ MUST contain "Your payment of 350 RWF to Jireh Faith 1921803"</li>
-            <li>✅ MUST show "was completed at" with date and time</li>
-            <li>✅ MUST show Balance and Fee amounts</li>
-            <li>✅ MUST end with *EN#</li>
-            <li>❌ Any other format will be REJECTED</li>
+          <p>Your receipt must match the required proof pattern exactly. Anything else is rejected automatically.</p>
+          <div class="verification-chip-row">
+            <span class="verification-chip">Screenshot name</span>
+            <span class="verification-chip">350 RWF</span>
+            <span class="verification-chip">Jireh Faith</span>
+            <span class="verification-chip">1921803</span>
+          </div>
+          <h5 class="required-format-title">Exact Required Format</h5>
+          <pre class="required-format-box">TxId:[VALUE]*S*Your payment of 350 RWF to Jireh Faith 1921803 was completed at [DATE] [TIME]. Balance: [AMOUNT] RWF. Fee [AMOUNT] RWF.*EN#</pre>
+          <ul class="required-format-list">
+            <li>✅ Receipt must start with TxId:</li>
+            <li>✅ Must contain the exact payment details</li>
+            <li>✅ Must show completed date and time</li>
+            <li>✅ Must show Balance and Fee amounts</li>
+            <li>✅ Must end with *EN#</li>
+            <li>❌ Any other format is rejected</li>
           </ul>
         </div>
 
@@ -1132,6 +1139,62 @@ onUnmounted(() => { clearInterval(timerInterval) })
 }
 .file-input-hidden {
   display: none;
+}
+.premium-panel {
+  background: linear-gradient(145deg, rgba(255,255,255,0.04), rgba(124,58,237,0.08));
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 18px;
+  padding: 1rem;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+}
+.panel-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(16,185,129,0.15);
+  color: #6ee7b7;
+  font-size: 0.73rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 0.7rem;
+}
+.verification-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0.85rem 0 0.8rem;
+}
+.verification-chip {
+  padding: 0.35rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.08);
+  color: #f8fafc;
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+.required-format-title {
+  color: #10b981;
+  margin: 0.85rem 0 0.5rem;
+  font-size: 0.95rem;
+}
+.required-format-box {
+  background: rgba(0,0,0,0.35);
+  padding: 0.75rem;
+  border-radius: 10px;
+  font-size: 0.78rem;
+  overflow: auto;
+  color: #d1fae5;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.required-format-list {
+  margin-top: 0.8rem;
+  padding-left: 1.1rem;
+  color: rgba(255,255,255,0.8);
+  font-size: 0.88rem;
+  line-height: 1.6;
 }
 
 /* ── SCANNER SIDEBAR ── */
