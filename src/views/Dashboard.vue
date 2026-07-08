@@ -25,14 +25,20 @@
 
       <div class="stats-grid">
         <div class="stat-card main-balance">
-          <div class="stat-icon">💰</div>
-          <div class="stat-content">
-            <span class="stat-label">{{ t('yourBalance') }}</span>
-            <span class="stat-value">{{ currentUser?.balance?.toLocaleString() || 0 }}</span>
-            <span class="stat-currency">RWF</span>
+          <div class="stat-left">
+            <div class="stat-icon">💰</div>
+            <div class="stat-content">
+              <span class="stat-label">{{ t('yourBalance') }}</span>
+              <div class="balance-row">
+                <span class="stat-value">{{ currentUser?.balance?.toLocaleString() || 0 }}</span>
+                <span class="stat-currency">RWF</span>
+              </div>
+              <span class="stat-sub">{{ locale === 'rw' ? 'Ayo usigaranye' : 'Available to withdraw' }}</span>
+            </div>
           </div>
-          <router-link to="/wallet" class="btn btn-outline btn-sm">
-            {{ t('withdraw') }}
+
+          <router-link to="/wallet" class="withdraw-pill">
+            {{ locale === 'rw' ? 'Kubikuza' : t('withdraw') }}
           </router-link>
         </div>
 
@@ -364,16 +370,42 @@ const formatDate = (dateStr) => {
   margin-bottom: 0.25rem;
 }
 
+.stat-left { display:flex; gap:1rem; align-items:center; }
 .stat-content .stat-value {
-  font-size: 1.5rem;
-  font-weight: 800;
+  font-size: 2.4rem;
+  font-weight: 900;
+  line-height: 1;
 }
 
+.balance-row { display: flex; align-items: baseline; gap: 0.6rem; }
 .stat-currency {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-  margin-left: 0.25rem;
+  font-size: 1rem;
+  color: rgba(255,255,255,0.95);
 }
+
+.stat-sub {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.76rem;
+  color: rgba(255,255,255,0.85);
+  opacity: 0.9;
+}
+
+.withdraw-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.9rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #f59e0b, #10b981);
+  color: #050816;
+  font-weight: 800;
+  text-decoration: none;
+  box-shadow: 0 10px 28px rgba(16,185,129,0.14);
+}
+
+.withdraw-pill:hover { transform: translateY(-2px); }
 
 .main-balance .stat-content .stat-label {
   color: rgba(255, 255, 255, 0.8);
