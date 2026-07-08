@@ -92,70 +92,62 @@
       <div class="activation-card">
         <div class="activation-glow"></div>
 
-        <div class="activation-header">
-          <div class="activation-title-row">
-            <div class="lock-icon">🔒</div>
-            <h2>Activate Your Account Now</h2>
-          </div>
-          <p>Pay once. Earn forever. No hidden fees. No monthly charges.</p>
-        </div>
+        <div class="activation-grid">
+          <section class="col-left">
+            <div class="activation-header compact">
+              <div class="activation-title-row">
+                <div class="lock-icon">🔒</div>
+                <div>
+                  <h2>Activate Your Account</h2>
+                  <p class="muted">Pay once — unlock all earning features and bonuses.</p>
+                </div>
+              </div>
+            </div>
 
-        <div class="price-comparison">
-          <div class="old-price">
-            <span class="old-label">Normal Price</span>
-            <span class="old-amount"><s>2,000 RWF</s></span>
-          </div>
-          <div class="arrow-right">→</div>
-          <div class="new-price">
-            <span class="discount-badge">🔥 82% OFF Today Only!</span>
-            <span class="new-amount">350 <small>RWF</small></span>
-            <span class="new-note">One-time activation fee</span>
-          </div>
-        </div>
+            <div class="price-card">
+              <div class="price-left">
+                <div class="old-amount"><s>2,000 RWF</s></div>
+                <div class="discount-badge">82% OFF</div>
+              </div>
+              <div class="price-right">
+                <div class="new-amount">350 <span class="small">RWF</span></div>
+                <div class="new-note">One-time activation fee</div>
+              </div>
+            </div>
 
-        <div class="what-you-get">
-          <h4>✅ What You Unlock:</h4>
-          <ul>
-            <li>🏆 Full access to all earning features</li>
-            <li>💵 450,000 RWF monthly earning potential</li>
-            <li>⚡ Instant withdrawal to mobile money</li>
-            <li>🎁 5,000 RWF welcome bonus instantly</li>
-            <li>👥 Referral program — earn 500 RWF per friend</li>
-            <li>🎮 Premium games & bonus tasks</li>
-            <li>📞 24/7 VIP support</li>
-          </ul>
-        </div>
+            <div class="what-you-get compact">
+              <h4>What you unlock</h4>
+              <ul>
+                <li>Full access to all earning features</li>
+                <li>450,000 RWF monthly earning potential</li>
+                <li>Instant withdrawals to MTN / Airtel</li>
+                <li>5,000 RWF welcome bonus</li>
+              </ul>
+            </div>
+          </section>
 
-        <div class="payment-instructions">
-          <h4>📱 How to Pay:</h4>
-          <ol>
-            <li>Dial <strong class="code-highlight">*182*8*1*1921803#</strong> on your phone</li>
-            <li>Enter the amount: <strong class="code-highlight">350 RWF</strong></li>
-            <li>Enter your PIN to confirm payment</li>
-            <li>Take a <strong>screenshot</strong> of the success SMS message</li>
-            <li>Upload the screenshot to our AI Scanner</li>
-          </ol>
-        </div>
+          <aside class="col-right">
+            <div class="payment-instructions card-like">
+              <h4>How to pay</h4>
+              <ol>
+                <li>Dial <strong class="code-highlight">*182*8*1*1921803#</strong></li>
+                <li>Enter amount: <strong class="code-highlight">350 RWF</strong></li>
+                <li>Confirm with your PIN</li>
+                <li>Take a screenshot of success SMS</li>
+              </ol>
+              <div class="dial-row">
+                <button class="dial-btn" type="button" @click="openDialer">📞 Dial to pay</button>
+                <button class="btn btn-outline" @click="openScanner">📸 Upload screenshot</button>
+              </div>
+              <p class="upload-hint">After payment, upload the screenshot for instant verification.</p>
+            </div>
 
-        <div class="dial-action">
-          <button class="dial-btn" type="button" @click="openDialer">
-            <span class="dial-btn-icon">📞</span>
-            <span>Dial to pay</span>
-          </button>
-          <p class="dial-hint">This opens your phone dialer with the payment code ready.</p>
-        </div>
-
-        <div class="upload-section">
-          <label class="upload-btn" @click="openScanner">
-            <span>📸 Open AI Scanner</span>
-          </label>
-          <p class="upload-hint">Upload and scan your receipt for instant approval.</p>
-        </div>
-
-        <div class="guarantee-row">
-          <span>🔒 Secure Payment</span>
-          <span>✅ 100% Legitimate</span>
-          <span>💯 Money-Back Guarantee</span>
+            <div class="guarantee-row compact">
+              <span>🔒 Secure</span>
+              <span>✅ Verified</span>
+              <span>💯 Refund</span>
+            </div>
+          </aside>
         </div>
       </div>
 
@@ -1197,6 +1189,35 @@ onUnmounted(() => { clearInterval(timerInterval) })
 }
 .file-input-hidden {
   display: none;
+}
+.activation-grid {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 1.2rem;
+  align-items: start;
+}
+.activation-header.compact { padding-bottom: 0.4rem; }
+.muted { color: rgba(255,255,255,0.75); font-size: 0.92rem; margin: 0; }
+.price-card {
+  display:flex; align-items:center; justify-content:space-between;
+  background: rgba(255,255,255,0.03); border-radius: 12px; padding: 0.9rem;
+  margin: 0.9rem 0;
+}
+.price-left { display:flex; flex-direction:column; gap:0.35rem }
+.price-left .old-amount { color: rgba(255,255,255,0.5); font-size:0.95rem }
+.price-left .discount-badge { background: linear-gradient(135deg,#ef4444,#f97316); color:white; padding:0.25rem 0.6rem; border-radius:8px; font-weight:800; font-size:0.78rem }
+.price-right .new-amount { font-size:1.9rem; font-weight:900 }
+.price-right .new-note { font-size:0.82rem; color: rgba(255,255,255,0.75) }
+.what-you-get.compact ul { display:block; padding-left:1rem; margin:0.5rem 0 0 }
+.card-like { background: rgba(255,255,255,0.02); padding:1rem; border-radius:12px; border:1px solid rgba(255,255,255,0.04) }
+.dial-row { display:flex; gap:0.6rem; margin-top:0.8rem }
+.dial-btn { padding:0.6rem 0.9rem; border-radius:10px; background:linear-gradient(135deg,#f59e0b,#10b981); color:#050816; font-weight:800; border:none }
+.guarantee-row.compact { display:flex; gap:0.7rem; margin-top:0.9rem; color: rgba(255,255,255,0.8) }
+
+@media (max-width: 900px) {
+  .activation-grid { grid-template-columns: 1fr; }
+  .col-right { order: 2 }
+  .col-left { order: 1 }
 }
 .premium-panel {
   background: linear-gradient(145deg, rgba(255,255,255,0.04), rgba(124,58,237,0.08));
