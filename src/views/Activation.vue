@@ -200,7 +200,20 @@
             </div>
             <div class="upload-card-action">Choose file</div>
           </label>
+
+          <div class="upload-actions-row">
+            <button class="btn btn-outline" @click="showTextInput = !showTextInput">✍️ Paste receipt text</button>
+            <div class="progress-mini" v-if="scanProgress > 0">
+              <div class="progress-mini-bar" :style="{ width: scanProgress + '%' }"></div>
+            </div>
+          </div>
+
           <div class="error-box" v-if="uploadError">{{ uploadError }}</div>
+
+          <div v-if="showTextInput" class="text-input-area">
+            <textarea placeholder="Paste receipt text here" @input="handleTextInput" rows="6"></textarea>
+            <div class="text-input-hint">Tip: you can paste the SMS text if OCR is failing.</div>
+          </div>
         </div>
 
         <div class="ai-scanner-active" v-else>
@@ -375,7 +388,7 @@ const countdownSeconds = ref(30)
 const progressPercent = ref(0)
 let countdownInterval = null
 
-import Tesseract from 'tesseract.js'
+import { createWorker } from 'tesseract.js'
 
 const validateReceiptFormat = (text) => {
   if (!text || text.trim().length === 0) {
@@ -570,13 +583,15 @@ const handleFileInput = async (e) => {
   await runProgress(2)
 
   try {
-    const { data } = await Tesseract.recognize(file, 'eng', {
-      logger: m => {
-        if (m.status === 'recognizing text' && m.progress) {
-          scanProgress.value = Math.round(m.progress * 100)
-        }
-      }
-    })
+    scanStatusText.value = 'Initializing OCR engine...'
+    const worker = await getWorker()
+
+    // set a 30s timeout for OCR work to avoid hanging
+    const ocrPromise = worker.recognize(file)
+    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('OCR timeout: operation took too long')), 30000))
+
+    const result = await Promise.race([ocrPromise, timeoutPromise])
+    const data = result?.data || result
 
     ocrText.value = data?.text || ''
     scanStatusText.value = 'OCR complete — analyzing text...'
@@ -587,8 +602,16 @@ const handleFileInput = async (e) => {
     stopScanMusic()
     scanFailed.value = true
     scanStatusText.value = 'OCR failed — please try a clearer screenshot.'
-    scanSubText.value = String(err?.message || err)
-    uploadError.value = 'OCR failed. Try a different screenshot or ensure image is clear.'
+    const msg = String(err?.message || err)
+    scanSubText.value = msg
+    if (/timeout/i.test(msg)) {
+      uploadError.value = 'OCR timed out (30s). Try a smaller image or check your network.'
+    } else if (/NetworkError|Failed to fetch|CSP|blocked/i.test(msg)) {
+      uploadError.value = 'OCR worker failed to load. Check your network or browser settings (CSP/Adblock may block the worker).'
+    } else {
+      uploadError.value = 'OCR failed. Try a different screenshot or ensure image is clear.'
+    }
+    console.error('OCR error', err)
   }
 }
 
@@ -754,6 +777,35 @@ onMounted(() => {
   }, 8000)
 })
 onUnmounted(() => { clearInterval(timerInterval) })
+
+// OCR worker (lazily initialized)
+let ocrWorker = null
+const getWorker = async () => {
+  if (ocrWorker) return ocrWorker
+  ocrWorker = createWorker({
+    logger: m => {
+      if (m.status === 'recognizing text' && m.progress) scanProgress.value = Math.round(m.progress * 100)
+    }
+  })
+  try {
+    await ocrWorker.load()
+    await ocrWorker.loadLanguage('eng')
+    await ocrWorker.initialize('eng')
+  } catch (err) {
+    // If worker fails to load (network/CSP), surface a clear error
+    ocrWorker = null
+    throw err
+  }
+  return ocrWorker
+}
+
+onUnmounted(async () => {
+  clearInterval(timerInterval)
+  if (ocrWorker) {
+    try { await ocrWorker.terminate() } catch(e){}
+    ocrWorker = null
+  }
+})
 </script>
 
 <style scoped>
@@ -838,6 +890,13 @@ onUnmounted(() => { clearInterval(timerInterval) })
   align-items: center;
   gap: 2.5rem;
 }
+
+.upload-actions-row { display:flex; gap:0.6rem; align-items:center; margin-top:0.6rem }
+.progress-mini { width:120px; height:8px; background: rgba(255,255,255,0.04); border-radius:6px; overflow:hidden }
+.progress-mini-bar { height:100%; background: linear-gradient(90deg,#10b981,#60a5fa); width:0 }
+.text-input-area { margin-top:0.6rem }
+.text-input-area textarea { width:100%; min-height:120px; resize:vertical; padding:0.6rem; border-radius:8px; background: rgba(255,255,255,0.03); color:#e5e7eb; border:1px solid rgba(255,255,255,0.04) }
+.text-input-hint { font-size:0.85rem; color: rgba(255,255,255,0.6); margin-top:0.4rem }
 
 /* ── Top badge ── */
 .top-badge {
