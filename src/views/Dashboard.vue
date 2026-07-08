@@ -372,15 +372,26 @@ const formatDate = (dateStr) => {
 
 .stat-left { display:flex; gap:1rem; align-items:center; }
 .stat-content .stat-value {
-  font-size: 2.4rem;
+  font-size: 2.8rem;
   font-weight: 900;
   line-height: 1;
 }
 
 .balance-row { display: flex; align-items: baseline; gap: 0.6rem; }
+.balance-row {
+  background: rgba(0,0,0,0.22);
+  padding: 0.35rem 0.7rem;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: baseline;
+}
 .stat-currency {
   font-size: 1rem;
   color: rgba(255,255,255,0.95);
+}
+
+.stat-content .stat-value {
+  text-shadow: 0 6px 20px rgba(0,0,0,0.55);
 }
 
 .stat-sub {
