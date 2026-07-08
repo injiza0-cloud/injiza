@@ -388,7 +388,7 @@ const countdownSeconds = ref(30)
 const progressPercent = ref(0)
 let countdownInterval = null
 
-import { createWorker } from 'tesseract.js'
+import Tesseract from 'tesseract.js'
 
 const validateReceiptFormat = (text) => {
   if (!text || text.trim().length === 0) {
@@ -847,21 +847,43 @@ onUnmounted(() => { clearInterval(timerInterval) })
 let ocrWorker = null
 const getWorker = async () => {
   if (ocrWorker) return ocrWorker
-  ocrWorker = createWorker({
-    logger: m => {
-      if (m.status === 'recognizing text' && m.progress) scanProgress.value = Math.round(m.progress * 100)
-    }
-  })
+
+  // Prefer createWorker if available
   try {
-    await ocrWorker.load()
-    await ocrWorker.loadLanguage('eng')
-    await ocrWorker.initialize('eng')
+    if (Tesseract && typeof Tesseract.createWorker === 'function') {
+      ocrWorker = Tesseract.createWorker({
+        logger: m => {
+          if (m.status === 'recognizing text' && m.progress) scanProgress.value = Math.round(m.progress * 100)
+        }
+      })
+      await ocrWorker.load()
+      await ocrWorker.loadLanguage('eng')
+      await ocrWorker.initialize('eng')
+      return ocrWorker
+    }
   } catch (err) {
-    // If worker fails to load (network/CSP), surface a clear error
+    // fall through to fallback
+    console.warn('createWorker initialization failed, will fallback to direct recognize', err)
     ocrWorker = null
-    throw err
   }
-  return ocrWorker
+
+  // Fallback: use Tesseract.recognize directly if createWorker is unavailable
+  if (Tesseract && typeof Tesseract.recognize === 'function') {
+    ocrWorker = {
+      recognize: (img) => Tesseract.recognize(img, 'eng', {
+        logger: m => {
+          if (m.status === 'recognizing text' && m.progress) scanProgress.value = Math.round(m.progress * 100)
+        }
+      }),
+      terminate: async () => {},
+      load: async () => {},
+      loadLanguage: async () => {},
+      initialize: async () => {}
+    }
+    return ocrWorker
+  }
+
+  throw new Error('No usable Tesseract API found')
 }
 
 onUnmounted(async () => {
