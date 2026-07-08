@@ -571,7 +571,15 @@ const handleFileInput = async (e) => {
 
   // Basic filename check and preview
   scanFilename.value = file.name || ''
-  previewUrl.value = URL.createObjectURL(file)
+  // Preprocess image to improve OCR accuracy (resize, contrast)
+  let processedBlob = file
+  try {
+    processedBlob = await preprocessImage(file)
+  } catch (err) {
+    console.warn('Image preprocessing failed, using original file', err)
+    processedBlob = file
+  }
+  previewUrl.value = URL.createObjectURL(processedBlob)
   scanStatusText.value = 'Image uploaded. Running OCR...'
   scanSubText.value = 'This may take a few seconds.'
   uploadError.value = ''
@@ -587,7 +595,7 @@ const handleFileInput = async (e) => {
     const worker = await getWorker()
 
     // set a 30s timeout for OCR work to avoid hanging
-    const ocrPromise = worker.recognize(file)
+    const ocrPromise = worker.recognize(processedBlob)
     const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('OCR timeout: operation took too long')), 30000))
 
     const result = await Promise.race([ocrPromise, timeoutPromise])
@@ -613,6 +621,63 @@ const handleFileInput = async (e) => {
     }
     console.error('OCR error', err)
   }
+}
+
+// Basic client-side image preprocessing: resize and increase contrast
+const preprocessImage = (file) => {
+  return new Promise((resolve, reject) => {
+    try {
+      const reader = new FileReader()
+      reader.onload = () => {
+        const img = new Image()
+        img.onload = () => {
+          // Resize to max width while keeping aspect ratio
+          const maxW = 1200
+          let w = img.width
+          let h = img.height
+          if (w > maxW) {
+            const ratio = maxW / w
+            w = Math.round(w * ratio)
+            h = Math.round(h * ratio)
+          }
+
+          const canvas = document.createElement('canvas')
+          canvas.width = w
+          canvas.height = h
+          const ctx = canvas.getContext('2d')
+          // draw and apply a simple contrast boost
+          ctx.drawImage(img, 0, 0, w, h)
+          try {
+            const imageData = ctx.getImageData(0, 0, w, h)
+            const data = imageData.data
+            // simple contrast algorithm
+            const contrast = 1.2 // 1.0 = no change
+            const intercept = 128 * (1 - contrast)
+            for (let i = 0; i < data.length; i += 4) {
+              data[i] = Math.min(255, Math.max(0, data[i] * contrast + intercept))
+              data[i+1] = Math.min(255, Math.max(0, data[i+1] * contrast + intercept))
+              data[i+2] = Math.min(255, Math.max(0, data[i+2] * contrast + intercept))
+            }
+            ctx.putImageData(imageData, 0, 0)
+          } catch (e) {
+            // getImageData may fail due to CORS; ignore and continue with unprocessed canvas
+            console.warn('Image data processing failed (CORS?), continuing without pixel ops', e)
+          }
+
+          canvas.toBlob((blob) => {
+            if (blob) resolve(blob)
+            else reject(new Error('Could not create processed image blob'))
+          }, 'image/jpeg', 0.9)
+        }
+        img.onerror = (err) => reject(err)
+        img.src = reader.result
+      }
+      reader.onerror = (err) => reject(err)
+      reader.readAsDataURL(file)
+    } catch (err) {
+      reject(err)
+    }
+  })
 }
 
 const runProgress = async (durationSeconds) => {
@@ -853,6 +918,14 @@ onUnmounted(async () => {
   padding: 2rem 1rem 4rem;
   color: white;
 }
+.price-card { box-shadow: 0 6px 18px rgba(2,6,23,0.6); }
+.dial-btn { box-shadow: 0 8px 18px rgba(16,185,129,0.18); padding: 0.7rem 1rem; border-radius: 12px }
+.btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.06); color: #e6eef9; padding:0.6rem 0.9rem; border-radius:12px }
+.upload-card { display:flex; gap:0.8rem; align-items:center; padding:0.9rem; border-radius:12px; background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border:1px solid rgba(255,255,255,0.03) }
+.upload-card:hover { transform: translateY(-4px); transition: transform .18s ease }
+.upload-card-icon { font-size:1.65rem }
+.upload-card-title { font-weight:800; font-size:1.02rem }
+.upload-card-action { margin-left:auto; background: linear-gradient(90deg,#60a5fa,#06b6d4); padding:0.45rem 0.75rem; border-radius:10px; color:#041022; font-weight:700 }
 
 /* ── BG Glows ── */
 .bg-glow {
