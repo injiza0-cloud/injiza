@@ -93,8 +93,10 @@
         <div class="activation-glow"></div>
 
         <div class="activation-header">
-          <div class="lock-icon">🔓</div>
-          <h2>Activate Your Account Now</h2>
+          <div class="activation-title-row">
+            <div class="lock-icon">🔒</div>
+            <h2>Activate Your Account Now</h2>
+          </div>
           <p>Pay once. Earn forever. No hidden fees. No monthly charges.</p>
         </div>
 
@@ -133,6 +135,14 @@
             <li>Take a <strong>screenshot</strong> of the success SMS message</li>
             <li>Upload the screenshot to our AI Scanner</li>
           </ol>
+        </div>
+
+        <div class="dial-action">
+          <button class="dial-btn" type="button" @click="openDialer">
+            <span class="dial-btn-icon">📞</span>
+            <span>Dial to pay</span>
+          </button>
+          <p class="dial-hint">This opens your phone dialer with the payment code ready.</p>
         </div>
 
         <div class="upload-section">
@@ -503,6 +513,14 @@ const playSuccessTone = () => {
 const playFailureTone = () => {
   playTone(180, 0.2, 'sine', 0.08)
   setTimeout(() => playTone(140, 0.25, 'sine', 0.06), 220)
+}
+
+const dialPhoneNumber = 'tel:*182*8*1*1921803#'
+
+const openDialer = () => {
+  if (typeof window !== 'undefined') {
+    window.location.href = dialPhoneNumber
+  }
 }
 
 const openScanner = () => {
@@ -968,9 +986,49 @@ onUnmounted(() => { clearInterval(timerInterval) })
   pointer-events: none;
 }
 .activation-header { text-align: center; margin-bottom: 2rem; }
-.lock-icon { font-size: 3rem; margin-bottom: 0.75rem; }
-.activation-header h2 { font-size: 1.8rem; font-weight: 900; margin-bottom: 0.5rem; }
+.activation-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+.lock-icon { font-size: 2.8rem; line-height: 1; }
+.activation-header h2 { font-size: 1.8rem; font-weight: 900; margin: 0; }
 .activation-header p { color: rgba(255,255,255,0.5); font-size: 0.9rem; }
+.dial-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0.5rem 0 1rem;
+}
+.dial-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.7rem 1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(251,191,36,0.35);
+  background: rgba(251,191,36,0.14);
+  color: #fbbf24;
+  font-weight: 700;
+  font-size: 0.92rem;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+.dial-btn:hover {
+  transform: translateY(-1px);
+  background: rgba(251,191,36,0.22);
+}
+.dial-btn-icon { font-size: 1rem; }
+.dial-hint {
+  font-size: 0.76rem;
+  color: rgba(255,255,255,0.45);
+  margin: 0;
+}
 
 /* Price comparison */
 .price-comparison {
