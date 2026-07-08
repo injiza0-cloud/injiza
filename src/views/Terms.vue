@@ -29,8 +29,8 @@
           <h2>3. {{ locale === 'rw' ? 'Imikurikiire' : 'Rewards' }}</h2>
           <p>
             {{ locale === 'rw' 
-              ? 'Uhabwa amafaranga ukoresheje video n\'imikorere. Byishyuriwe kuri Mobile Money. Kujijuta: 15,000 RWF nibura.' 
-              : 'You earn rewards by watching videos and completing tasks. Paid via Mobile Money. Minimum withdrawal: 15,000 RWF.' }}
+              ? 'Uhabwa amafaranga ukoresheje video n\'imikorere. Byishyuriwe kuri Mobile Money. Kujijuta: 43,900 RWF nibura.' 
+              : 'You earn rewards by watching videos and completing tasks. Paid via Mobile Money. Minimum withdrawal: 43,900 RWF.' }}
           </p>
         </section>
 

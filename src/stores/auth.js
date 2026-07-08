@@ -519,7 +519,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const requestWithdrawal = async (amount, phone) => {
     if (!user.value) return { success: false, message: 'Not logged in' }
-    if (amount < 15000) return { success: false, message: 'minAmount' }
+    if (amount < 43900) return { success: false, message: 'minAmount' }
     if (amount > user.value.balance) return { success: false, message: 'insufficient' }
 
     const userIndex = users.value.findIndex(u => u.id === user.value.id)
@@ -732,6 +732,18 @@ export const useAuthStore = defineStore('auth', () => {
     return { success: true, amount }
   }
 
+  const claimWelcomeBonus = async () => {
+    if (!user.value) return { success: false, message: 'Not logged in' }
+    const alreadyClaimed = transactions.value.some(tx =>
+      tx.user_id === user.value.id &&
+      tx.type === 'bonus' &&
+      tx.description === 'Welcome bonus' &&
+      tx.status === 'completed'
+    )
+    if (alreadyClaimed) return { success: false, message: 'alreadyClaimed' }
+    return addBalance(5000)
+  }
+
   const updateProfile = async (userId, updates) => {
     try {
       const safeUpdates = { ...updates }
@@ -827,6 +839,7 @@ export const useAuthStore = defineStore('auth', () => {
     getVideos: () => videos.value,
     getTasks: () => tasks.value,
     addBalance,
+    claimWelcomeBonus,
     refreshData: loadAllData,
     getAdminAlerts,
     hasFraudWarning,

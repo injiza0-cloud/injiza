@@ -61,7 +61,7 @@
             </div>
             <div class="stat-tile">
               <div class="tile-title">Min withdraw</div>
-              <div class="tile-value">35,000 RWF</div>
+              <div class="tile-value">43,900 RWF</div>
             </div>
             <div class="stat-tile">
               <div class="tile-title">Today earned</div>
@@ -175,10 +175,7 @@
         <div class="insight-card">
           <div class="insight-title">📈 Reward progress</div>
           <p class="insight-note">Current balance: 14,900 RWF</p>
-          <p class="insight-note">Minimum withdrawal: 35,000 RWF</p>
-          <div class="progress-track"><div class="progress-fill" style="width: 42%"></div></div>
-          <div class="progress-label">42% complete</div>
-        </div>
+            <p class="insight-note">Minimum withdrawal: 43,900 RWF</p>
 
         <div class="insight-card">
           <div class="insight-title">🎯 Bonus opportunities</div>
@@ -301,23 +298,23 @@
                       type="number" 
                       v-model.number="withdrawAmount" 
                       class="input-field"
-                      placeholder="25000"
-                      min="25000"
+                      placeholder="43900"
+                      min="43900"
                       :max="currentUser?.balance"
                     >
                   </div>
                   <div class="quick-amounts">
-                    <button type="button" @click="withdrawAmount = 25000" :class="{ active: withdrawAmount === 25000 }">25K</button>
+                    <button type="button" @click="withdrawAmount = 43900" :class="{ active: withdrawAmount === 43900 }">43.9K</button>
                     <button type="button" @click="withdrawAmount = 50000" :class="{ active: withdrawAmount === 50000 }">50K</button>
                     <button type="button" @click="withdrawAmount = 100000" :class="{ active: withdrawAmount === 100000 }">100K</button>
                     <button type="button" @click="withdrawAmount = currentUser?.balance || 0" :class="{ active: withdrawAmount === currentUser?.balance }">All</button>
                   </div>
-                  <small v-if="withdrawAmount < 25000" class="error-text">
-                    {{ locale === 'rw' ? 'Igiciro kinini ni 25,000 RWF' : 'Minimum is 25,000 RWF' }}
+                  <small v-if="withdrawAmount < 43900" class="error-text">
+                    {{ locale === 'rw' ? 'Igiciro kinini ni 43,900 RWF' : 'Minimum is 43,900 RWF' }}
                   </small>
                 </div>
                 
-                <button type="button" @click="goToStep2" class="btn btn-primary btn-lg" :disabled="withdrawAmount < 25000 || withdrawAmount > (currentUser?.balance || 0)">
+                <button type="button" @click="goToStep2" class="btn btn-primary btn-lg" :disabled="withdrawAmount < 43900 || withdrawAmount > (currentUser?.balance || 0)">
                   Next →
                 </button>
               </div>
@@ -419,7 +416,7 @@ const locale = computed(() => i18nStore.locale)
 
 const showWithdrawModal = ref(false)
 const step = ref(1)
-const withdrawAmount = ref(25000)
+const withdrawAmount = ref(43900)
 const withdrawPhone = ref('')
 const withdrawLoading = ref(false)
 const withdrawError = ref('')
@@ -579,7 +576,7 @@ const claimBonus = async () => {
 
 const startWithdraw = () => {
   step.value = 1
-  withdrawAmount.value = 25000
+  withdrawAmount.value = 43900
   withdrawPhone.value = ''
   selectedMethod.value = ''
   showWithdrawModal.value = true
@@ -595,7 +592,7 @@ const nextStep = () => {
 }
 
 const goToStep2 = () => {
-  if (withdrawAmount.value >= 25000 && withdrawAmount.value <= (currentUser.value?.balance || 0)) {
+  if (withdrawAmount.value >= 43900 && withdrawAmount.value <= (currentUser.value?.balance || 0)) {
     step.value = 2
   }
 }
@@ -639,7 +636,7 @@ const formatDate = (dateStr) => {
 const submitWithdrawal = async () => {
   withdrawError.value = ''
   
-  if (withdrawAmount.value < 25000) {
+  if (withdrawAmount.value < 43900) {
     withdrawError.value = 'minAmount'
     return
   }

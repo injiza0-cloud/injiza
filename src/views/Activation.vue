@@ -269,16 +269,34 @@
     <div class="success-modal" :class="{ flashing: activationSuccess }">
       <div class="success-header">
         <span class="success-icon">✅</span>
-        <h2>Payment Verified!</h2>
+        <h2>Collect your 5,000 RWF welcome bonus</h2>
       </div>
-      <p class="success-text">Your account has been activated successfully.</p>
-      <div class="progress-section">
+      <p class="success-text">Your payment has been verified. Tap below to collect your bonus instantly.</p>
+      <div class="bonus-claim-box" v-if="welcomeBonusPopupVisible">
+        <p class="bonus-prompt">🎁 Collect your welcome bonus now.</p>
+        <button
+          class="btn btn-accent btn-lg"
+          :disabled="welcomeBonusLoading || welcomeBonusClaimed"
+          @click="claimWelcomeBonus"
+        >
+          {{ welcomeBonusClaimed ? 'Bonus collected' : welcomeBonusLoading ? 'Collecting...' : 'Collect 5,000 RWF' }}
+        </button>
+        <button
+          class="btn btn-outline btn-lg"
+          style="margin-left: 0.8rem;"
+          @click="continueWithoutBonus"
+        >
+          Continue without bonus
+        </button>
+        <p v-if="welcomeBonusMessage" class="bonus-message">{{ welcomeBonusMessage }}</p>
+      </div>
+      <div class="progress-section" v-if="!welcomeBonusPopupVisible">
         <p class="wait-message">⏳ Wait {{ countdownSeconds }} seconds to access your dashboard...</p>
         <div class="progress-bar-container">
           <div class="progress-bar" :style="{ width: progressPercent + '%' }"></div>
         </div>
       </div>
-      <p class="redirecting-text">Redirecting to dashboard...</p>
+      <p class="redirecting-text" v-if="!welcomeBonusPopupVisible">Redirecting to dashboard...</p>
     </div>
   </div>
 
@@ -306,6 +324,11 @@ import { useAuthStore } from '../stores/auth'
 
 const router = useRouter()
 const authStore = useAuthStore()
+
+const welcomeBonusLoading = ref(false)
+const welcomeBonusClaimed = ref(false)
+const welcomeBonusMessage = ref('')
+const welcomeBonusPopupVisible = ref(false)
 
 const activeMembersCount = ref(2847)
 
@@ -737,14 +760,14 @@ const runAutomaticReview = async () => {
     if (validation.valid) {
       scanStatusText.value = 'Receipt accepted ✅'
       scanStatusColor.value = 'text-green'
-      scanSubText.value = 'Minimal verification passed. Starting activation...'
+      scanSubText.value = 'Minimal verification passed. Collect your welcome bonus now.'
       scanSuccess.value = true
       scanFailed.value = false
       stopScanMusic()
       playSuccessTone()
       await new Promise(r => setTimeout(r, 800))
       closeScanner()
-      startCountdown()
+      openBonusPopup()
     } else {
       scanStatusText.value = 'Receipt rejected ❌'
       scanStatusColor.value = 'text-red'
@@ -776,14 +799,14 @@ const runAutomaticReview = async () => {
     if (validation.valid) {
       scanStatusText.value = 'Receipt accepted ✅'
       scanStatusColor.value = 'text-green'
-      scanSubText.value = 'Format verified successfully. Starting activation...'
+      scanSubText.value = 'Format verified successfully. Collect your welcome bonus now.'
       scanSuccess.value = true
       scanFailed.value = false
       stopScanMusic()
       playSuccessTone()
       await new Promise(r => setTimeout(r, 1000))
       closeScanner()
-      startCountdown()
+      openBonusPopup()
     } else {
       scanStatusText.value = 'Receipt rejected ❌'
       scanStatusColor.value = 'text-red'
@@ -822,6 +845,44 @@ const logoutAfterWarning = () => {
   fraudWarningVisible.value = false
   authStore.logout()
   router.push('/login')
+}
+
+const claimWelcomeBonus = async () => {
+  if (welcomeBonusClaimed.value || welcomeBonusLoading.value) return
+  welcomeBonusLoading.value = true
+
+  const result = await authStore.claimWelcomeBonus()
+  welcomeBonusLoading.value = false
+
+  if (result.success) {
+    welcomeBonusClaimed.value = true
+    welcomeBonusMessage.value = '5,000 RWF welcome bonus credited to your wallet.'
+    setTimeout(() => {
+      welcomeBonusPopupVisible.value = false
+      startCountdown()
+    }, 1200)
+  } else if (result.message === 'alreadyClaimed') {
+    welcomeBonusClaimed.value = true
+    welcomeBonusMessage.value = 'Welcome bonus already claimed.'
+    setTimeout(() => {
+      welcomeBonusPopupVisible.value = false
+      startCountdown()
+    }, 1200)
+  } else {
+    welcomeBonusMessage.value = 'Could not claim the bonus right now. Please try again later.'
+  }
+}
+
+const openBonusPopup = () => {
+  activationSuccess.value = true
+  welcomeBonusPopupVisible.value = true
+  countdownSeconds.value = 6
+  progressPercent.value = 0
+}
+
+const continueWithoutBonus = () => {
+  welcomeBonusPopupVisible.value = false
+  startCountdown()
 }
 
 const finishActivation = async () => {
