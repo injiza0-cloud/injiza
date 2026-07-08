@@ -182,20 +182,22 @@
         </div>
 
         <div class="upload-box" v-if="!previewUrl">
-          <label class="text-input-label">
-            <div class="input-icon">📝</div>
-            <p>Paste Receipt Text</p>
-            <textarea 
-              class="receipt-text-input" 
-              placeholder="Paste your receipt text here (must match exact format)" 
-              @input="handleTextInput"
-              @paste="handleTextInput"
-            ></textarea>
+          <label class="upload-card">
+            <input class="file-input-hidden" type="file" accept="image/*" @change="handleFileInput" />
+            <div class="upload-card-icon">⬆️</div>
+            <div class="upload-card-content">
+              <div class="upload-card-title">Upload screenshot</div>
+              <div class="upload-card-subtitle">PNG, JPG, or WEBP • filename should start with <strong>"screenshot"</strong></div>
+            </div>
+            <div class="upload-card-action">Choose file</div>
           </label>
           <div class="error-box" v-if="uploadError">{{ uploadError }}</div>
         </div>
 
         <div class="ai-scanner-active" v-else>
+          <div v-if="previewUrl && previewUrl !== 'text-input'" class="ocr-image-wrap">
+            <img :src="previewUrl" alt="uploaded screenshot" class="ocr-image-preview" />
+          </div>
           <div class="scanner-ui">
             <div class="text-display">
               <p style="font-size: 0.9rem; color: #a7f3d0; word-break: break-all;">{{ ocrText }}</p>
@@ -364,6 +366,8 @@ const countdownSeconds = ref(30)
 const progressPercent = ref(0)
 let countdownInterval = null
 
+import Tesseract from 'tesseract.js'
+
 const validateReceiptFormat = (text) => {
   if (!text || text.trim().length === 0) {
     return { valid: false, reason: 'Receipt text is empty - image must contain valid receipt data' }
@@ -400,6 +404,21 @@ const validateReceiptFormat = (text) => {
   }
   
   return { valid: true, reason: 'Valid receipt' }
+}
+
+const validateMinimal = (text, filename) => {
+  const lower = (text || '').toLowerCase()
+  const filenameOk = !!(filename && /^screenshot/i.test(filename))
+  const hasAmount = /\b350\s*rwf\b/i.test(lower)
+  const hasReceiver = /\bjireh\s+faith\b/i.test(lower)
+  const hasCode = /1921803/.test(lower)
+
+  if (!filenameOk) return { valid: false, reason: 'Filename must start with "screenshot"' }
+  if (!hasAmount) return { valid: false, reason: 'Amount 350 RWF not found' }
+  if (!hasReceiver) return { valid: false, reason: 'Receiver Jireh Faith not found' }
+  if (!hasCode) return { valid: false, reason: 'Code 1921803 not found' }
+
+  return { valid: true, reason: 'Minimal receipt checks passed' }
 }
 
 const startCountdown = () => {
@@ -516,6 +535,46 @@ const simulateExtractedText = (fileNameLower) => {
   return ''
 }
 
+const handleFileInput = async (e) => {
+  const file = e.target.files && e.target.files[0]
+  if (!file) return
+
+  // Basic filename check and preview
+  scanFilename.value = file.name || ''
+  previewUrl.value = URL.createObjectURL(file)
+  scanStatusText.value = 'Image uploaded. Running OCR...'
+  scanSubText.value = 'This may take a few seconds.'
+  uploadError.value = ''
+  scanProgress.value = 0
+  scanFailed.value = false
+  scanSuccess.value = false
+
+  startScanMusic()
+  await runProgress(2)
+
+  try {
+    const { data } = await Tesseract.recognize(file, 'eng', {
+      logger: m => {
+        if (m.status === 'recognizing text' && m.progress) {
+          scanProgress.value = Math.round(m.progress * 100)
+        }
+      }
+    })
+
+    ocrText.value = data?.text || ''
+    scanStatusText.value = 'OCR complete — analyzing text...'
+    stopScanMusic()
+    await new Promise(r => setTimeout(r, 400))
+    runAutomaticReview()
+  } catch (err) {
+    stopScanMusic()
+    scanFailed.value = true
+    scanStatusText.value = 'OCR failed — please try a clearer screenshot.'
+    scanSubText.value = String(err?.message || err)
+    uploadError.value = 'OCR failed. Try a different screenshot or ensure image is clear.'
+  }
+}
+
 const runProgress = async (durationSeconds) => {
   const steps = 6
   const stepTime = Math.round((durationSeconds * 1000) / steps)
@@ -554,46 +613,84 @@ const startSimulation = async (text) => {
 
 const runAutomaticReview = async () => {
   const receiptText = ocrText.value || ''
-  const validation = validateReceiptFormat(receiptText)
+  const isFileUpload = previewUrl.value && previewUrl.value !== 'text-input'
 
-  scanCategories.value = [
-    {
-      title: 'Receipt Format Validation',
-      checks: [
-        { text: 'Screenshot filename starts with screenshot', passed: true },
-        { text: 'Contains TxId', passed: validation.valid },
-        { text: 'Contains 350 RWF payment', passed: validation.valid },
-        { text: 'Contains Jireh Faith before code 1921803', passed: validation.valid },
-        { text: 'Contains Balance and Fee details', passed: validation.valid },
-        { text: 'Ends with RWF...EN# pattern', passed: validation.valid }
-      ]
+  if (isFileUpload) {
+    const validation = validateMinimal(receiptText, scanFilename.value)
+    scanCategories.value = [
+      {
+        title: 'Minimal Receipt Checks',
+        checks: [
+          { text: 'Filename starts with "screenshot"', passed: /^screenshot/i.test(scanFilename.value) },
+          { text: 'Contains exact amount: 350 RWF', passed: /\b350\s*rwf\b/i.test(receiptText) },
+          { text: 'Contains receiver: Jireh Faith', passed: /\bjireh\s+faith\b/i.test(receiptText) },
+          { text: 'Contains code: 1921803', passed: /1921803/.test(receiptText) }
+        ]
+      }
+    ]
+
+    if (validation.valid) {
+      scanStatusText.value = 'Receipt accepted ✅'
+      scanStatusColor.value = 'text-green'
+      scanSubText.value = 'Minimal verification passed. Starting activation...'
+      scanSuccess.value = true
+      scanFailed.value = false
+      stopScanMusic()
+      playSuccessTone()
+      await new Promise(r => setTimeout(r, 800))
+      closeScanner()
+      startCountdown()
+    } else {
+      scanStatusText.value = 'Receipt rejected ❌'
+      scanStatusColor.value = 'text-red'
+      scanSubText.value = `Validation error: ${validation.reason}`
+      scanSuccess.value = false
+      scanFailed.value = true
+      fraudWarningMessage.value = `Receipt rejected: ${validation.reason}`
+      fraudWarningVisible.value = true
+      stopScanMusic()
+      playFailureTone()
+      try { await authStore.recordFraudWarning(authStore.currentUser?.id, fraudWarningMessage.value) } catch(e) {}
     }
-  ]
-
-  if (validation.valid) {
-    scanStatusText.value = 'Receipt accepted ✅'
-    scanStatusColor.value = 'text-green'
-    scanSubText.value = 'Format verified successfully. Starting activation...'
-    scanSuccess.value = true
-    scanFailed.value = false
-    stopScanMusic()
-    playSuccessTone()
-    
-    // Auto-close scanner and show success modal
-    await new Promise(r => setTimeout(r, 1000))
-    closeScanner()
-    startCountdown()
   } else {
-    scanStatusText.value = 'Receipt rejected ❌'
-    scanStatusColor.value = 'text-red'
-    scanSubText.value = `Format error: ${validation.reason}. Please ensure the format matches exactly.`
-    scanSuccess.value = false
-    scanFailed.value = true
-    fraudWarningMessage.value = `Receipt rejected: ${validation.reason}`
-    fraudWarningVisible.value = true
-    stopScanMusic()
-    playFailureTone()
-    await authStore.recordFraudWarning(authStore.currentUser?.id, fraudWarningMessage.value)
+    // Preserve original strict flow for pasted text
+    const validation = validateReceiptFormat(receiptText)
+    scanCategories.value = [
+      {
+        title: 'Receipt Format Validation',
+        checks: [
+          { text: 'Starts with TxId', passed: /^txid[:\s]*[0-9*a-z]+/i.test(receiptText) },
+          { text: 'Contains payment details 350 RWF to Jireh Faith 1921803', passed: /your\s+payment\s+of\s+350\s+rwf\s+to\s+jireh\s+faith\s+1921803/i.test(receiptText) },
+          { text: 'Contains completed at date/time', passed: /was\s+completed\s+at\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}/.test(receiptText) },
+          { text: 'Contains Balance and Fee', passed: /balance[:\s]*([0-9,]+)\s+rwf/i.test(receiptText) && /fee\s+([0-9]+)\s+rwf/i.test(receiptText) },
+          { text: 'Ends with *EN#', passed: /\*en#$/.test(receiptText) }
+        ]
+      }
+    ]
+
+    if (validation.valid) {
+      scanStatusText.value = 'Receipt accepted ✅'
+      scanStatusColor.value = 'text-green'
+      scanSubText.value = 'Format verified successfully. Starting activation...'
+      scanSuccess.value = true
+      scanFailed.value = false
+      stopScanMusic()
+      playSuccessTone()
+      await new Promise(r => setTimeout(r, 1000))
+      closeScanner()
+      startCountdown()
+    } else {
+      scanStatusText.value = 'Receipt rejected ❌'
+      scanStatusColor.value = 'text-red'
+      scanSubText.value = `Format error: ${validation.reason}. Please ensure the format matches exactly.`
+      scanSuccess.value = false
+      scanFailed.value = true
+      fraudWarningMessage.value = `Receipt rejected: ${validation.reason}`
+      fraudWarningVisible.value = true
+      stopScanMusic()
+      playFailureTone()
+      try { await authStore.recordFraudWarning(authStore.currentUser?.id, fraudWarningMessage.value) } catch(e) {}
+    }
   }
 }
 
@@ -652,6 +749,9 @@ onUnmounted(() => { clearInterval(timerInterval) })
   display: grid;
   gap: 0.55rem;
 }
+
+.ocr-image-wrap { width: 100%; display:flex; justify-content:center; }
+.ocr-image-preview { max-width: 100%; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); box-shadow: 0 8px 30px rgba(0,0,0,0.6); margin-bottom: 0.75rem; }
 
 .outcome-item {
   padding: 0.85rem 1rem;
@@ -952,26 +1052,86 @@ onUnmounted(() => { clearInterval(timerInterval) })
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
-  width: 100%;
-  padding: 1.2rem 1.6rem;
-  background: linear-gradient(135deg, #f59e0b, #10b981);
+  width: min(100%, 340px);
+  padding: 1rem 1.3rem;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 45%, #10b981 100%);
   border-radius: 999px;
   color: #050816;
-  font-size: 1.05rem;
+  font-size: 1rem;
   font-weight: 800;
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.6rem;
   border: 1px solid rgba(255,255,255,0.16);
+  box-shadow: 0 16px 35px rgba(16, 185, 129, 0.18);
 }
 .upload-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 16px 35px rgba(16, 185, 129, 0.25);
+  box-shadow: 0 18px 38px rgba(16, 185, 129, 0.25);
   opacity: 0.98;
 }
 .upload-hint {
   font-size: 0.8rem;
   color: rgba(255,255,255,0.4);
+}
+.upload-box {
+  margin-top: 0.25rem;
+}
+.upload-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 1rem;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: linear-gradient(135deg, rgba(124,58,237,0.16), rgba(16,185,129,0.12));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+}
+.upload-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(52,211,153,0.5);
+  box-shadow: 0 14px 30px rgba(16,185,129,0.18);
+}
+.upload-card-icon {
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #7c3aed, #10b981);
+  color: white;
+  font-size: 1.45rem;
+}
+.upload-card-content {
+  text-align: center;
+}
+.upload-card-title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #f8fafc;
+}
+.upload-card-subtitle {
+  margin-top: 0.2rem;
+  font-size: 0.84rem;
+  color: rgba(255,255,255,0.7);
+  line-height: 1.45;
+}
+.upload-card-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.6rem 0.95rem;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.1);
+  color: #f8fafc;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+.file-input-hidden {
+  display: none;
 }
 
 /* ── SCANNER SIDEBAR ── */

@@ -78,6 +78,23 @@ export const useAuthStore = defineStore('auth', () => {
     return supportedUserColumns.value[columnName]
   }
 
+  const ensureTransactionColumn = async (columnName) => {
+    try {
+      const { error } = await supabase
+        .from('transactions')
+        .select(columnName)
+        .limit(1)
+
+      if (error && error.code === '42703') {
+        return false
+      }
+      return true
+    } catch (e) {
+      console.error(`Transactions table column check error (${columnName}):`, e)
+      return false
+    }
+  }
+
   const ensureAvatarUrlColumn = async () => {
     if (avatarUrlSupported.value === false) return false
     const supported = await ensureUserColumn('avatar_url')
@@ -124,10 +141,33 @@ export const useAuthStore = defineStore('auth', () => {
     await loadAllData()
   }
 
-  const completeRegistrationRecord = async (userId) => {
+  const completeRegistrationRecord = async (userId, metadata = {}) => {
+    const updateFields = {
+      status: 'completed',
+      description: 'Registration payment verified'
+    }
+
+    const transactionColumns = await Promise.all([
+      ensureTransactionColumn('transaction_id'),
+      ensureTransactionColumn('payment_status'),
+      ensureTransactionColumn('screenshot_hash'),
+      ensureTransactionColumn('receipt_text'),
+      ensureTransactionColumn('payment_date'),
+      ensureTransactionColumn('fee'),
+      ensureTransactionColumn('balance')
+    ])
+
+    if (transactionColumns[0] && metadata.transaction_id) updateFields.transaction_id = metadata.transaction_id
+    if (transactionColumns[1] && metadata.payment_status) updateFields.payment_status = metadata.payment_status
+    if (transactionColumns[2] && metadata.screenshot_hash) updateFields.screenshot_hash = metadata.screenshot_hash
+    if (transactionColumns[3] && metadata.receipt_text) updateFields.receipt_text = metadata.receipt_text
+    if (transactionColumns[4] && metadata.payment_date) updateFields.payment_date = metadata.payment_date
+    if (transactionColumns[5] != null && metadata.fee != null) updateFields.fee = metadata.fee
+    if (transactionColumns[6] != null && metadata.balance != null) updateFields.balance = metadata.balance
+
     await supabase
       .from('transactions')
-      .update({ status: 'completed', description: 'Registration payment verified' })
+      .update(updateFields)
       .eq('user_id', userId)
       .eq('type', 'registration')
       .eq('status', 'pending')
@@ -136,8 +176,37 @@ export const useAuthStore = defineStore('auth', () => {
     await loadAllData()
   }
 
-  const recordFraudWarning = async (userId, details) => {
-    await supabase.from('transactions').insert({
+  const isDuplicatePaymentProof = async (transactionId, screenshotHash) => {
+    const transactionIdSupported = await ensureTransactionColumn('transaction_id')
+    const screenshotHashSupported = await ensureTransactionColumn('screenshot_hash')
+    const conditions = []
+
+    if (transactionId && transactionIdSupported) {
+      conditions.push(`transaction_id.eq.${transactionId}`)
+    }
+    if (screenshotHash && screenshotHashSupported) {
+      conditions.push(`screenshot_hash.eq.${screenshotHash}`)
+    }
+    if (!conditions.length) {
+      return false
+    }
+
+    const { data, error } = await supabase
+      .from('transactions')
+      .select('id')
+      .or(conditions.join(','))
+      .limit(1)
+
+    if (error) {
+      console.error('Duplicate payment proof query error:', error)
+      return false
+    }
+
+    return Array.isArray(data) && data.length > 0
+  }
+
+  const recordFraudWarning = async (userId, details, screenshotHash = null) => {
+    const insertPayload = {
       id: generateId(),
       user_id: userId,
       amount: 350,
@@ -145,7 +214,13 @@ export const useAuthStore = defineStore('auth', () => {
       description: details,
       status: 'failed',
       created_at: new Date().toISOString()
-    })
+    }
+
+    if (screenshotHash && await ensureTransactionColumn('screenshot_hash')) {
+      insertPayload.screenshot_hash = screenshotHash
+    }
+
+    await supabase.from('transactions').insert(insertPayload)
     await loadAllData()
   }
 

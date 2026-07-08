@@ -150,6 +150,7 @@
                 <span class="iicon">📱</span>
                 <input id="reg-phone" type="tel" v-model="phone" placeholder="+250 7XX XXX XXX" required />
               </div>
+              <small class="field-hint">Must start with +250 or 250 and include 12 digits total (e.g. +250 788 123 456).</small>
             </div>
 
             <div class="form-row">
@@ -278,6 +279,18 @@ const handleRegister = async () => {
   if (!acceptTerms.value) { error.value = 'Please accept the terms and conditions'; return }
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   if (!emailRegex.test(email.value)) { error.value = 'Please enter a valid email'; return }
+
+  let phoneInput = phone.value.trim().replace(/[-\s]/g, '')
+  if (phoneInput.startsWith('250') && !phoneInput.startsWith('+250')) {
+    phoneInput = `+${phoneInput}`
+  }
+  if (!/^\+2507\d{8}$/.test(phoneInput)) {
+    error.value = 'Phone number must start with +250 and follow the Rwandan format (e.g. +250788123456).'
+    loading.value = false
+    return
+  }
+  phone.value = phoneInput
+
   if (password.value !== confirmPassword.value) { error.value = 'Passwords do not match'; return }
   if (password.value.length < 6) { error.value = 'Password must be at least 6 characters'; return }
 
@@ -593,31 +606,31 @@ const handleRegister = async () => {
 .photo-upload-section {
   display: flex;
   justify-content: center;
-  margin-bottom: 0.8rem;
+  margin-bottom: 1rem;
   margin-top: 0.4rem;
   align-items: center;
+  gap: 0.85rem;
 }
 
 .photo-circle-label {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 72px;
-  height: 72px;
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
-  background: linear-gradient(135deg, rgba(167,139,250,0.22), rgba(56,189,248,0.22));
-  border: 2px solid rgba(167,139,250,0.45);
+  background: radial-gradient(circle at top left, rgba(56,189,248,0.28), rgba(167,139,250,0.18));
+  border: 1px solid rgba(255,255,255,0.18);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
   overflow: hidden;
-  box-shadow: 0 8px 20px rgba(167,139,250,0.18);
+  box-shadow: 0 18px 40px rgba(15,23,42,0.35), inset 0 0 0 1px rgba(255,255,255,0.06);
   position: relative;
 }
 
 .photo-circle-label:hover {
   border-color: rgba(167,139,250,0.8);
-  background: linear-gradient(135deg, rgba(167,139,250,0.28), rgba(56,189,248,0.28));
-  transform: scale(1.03);
+  transform: translateY(-2px) scale(1.04);
 }
 
 .photo-circle-placeholder {
@@ -625,39 +638,48 @@ const handleRegister = async () => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.25rem;
+  gap: 0.3rem;
   width: 100%;
   height: 100%;
 }
 
 .camera-icon {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
 }
 
 .camera-text {
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: #a78bfa;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.9);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.08em;
 }
 
 .photo-circle-img {
-  width: 68px;
-  height: 68px;
+  width: 94px;
+  height: 94px;
   object-fit: cover;
   object-position: center;
   border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.15);
+  box-shadow: 0 14px 30px rgba(15,23,42,0.35);
 }
 
 .remove-photo {
-  background: transparent;
-  border: none;
-  color: rgba(255,255,255,0.85);
-  font-size: 0.78rem;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.18);
+  color: white;
+  font-size: 0.82rem;
   cursor: pointer;
-  padding: 0.2rem 0.4rem;
-  margin-left: 0.6rem;
+  padding: 0.45rem 0.75rem;
+  border-radius: 999px;
+  transition: background 0.2s ease, transform 0.2s ease;
+  margin-left: 0.2rem;
+}
+
+.remove-photo:hover {
+  background: rgba(255,255,255,0.14);
+  transform: translateY(-1px);
 }
 
 .input-box {
@@ -704,6 +726,14 @@ const handleRegister = async () => {
 .eye-btn:hover { opacity: 1; }
 
 /* ── Terms ── */
+.field-hint {
+  color: rgba(255,255,255,0.55);
+  font-size: 0.78rem;
+  margin-top: 0.25rem;
+  display: block;
+  line-height: 1.4;
+}
+
 .terms-row {
   display: flex;
   align-items: flex-start;
