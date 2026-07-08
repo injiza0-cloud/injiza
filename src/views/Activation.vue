@@ -145,6 +145,21 @@
           <p class="dial-hint">This opens your phone dialer with the payment code ready.</p>
         </div>
 
+        <div class="promo-card">
+          <div class="promo-card-head">
+            <span class="promo-card-icon">✨</span>
+            <div>
+              <div class="promo-title">Have a promo code?</div>
+              <div class="promo-subtitle">Unlock extra savings on your activation.</div>
+            </div>
+          </div>
+          <div class="promo-input-row">
+            <input v-model="promoCode" class="promo-input" type="text" placeholder="Enter promo code" />
+            <button class="promo-btn" type="button" @click="applyPromo">Apply</button>
+          </div>
+          <p class="promo-message" v-if="promoMessage">{{ promoMessage }}</p>
+        </div>
+
         <div class="upload-section">
           <label class="upload-btn" @click="openScanner">
             <span>📸 Open AI Scanner</span>
@@ -374,6 +389,8 @@ const scanMusicPlaying = ref(false)
 let audioContext = null
 let scanMusicOscillator = null
 let scanMusicGain = null
+const promoCode = ref('')
+const promoMessage = ref('')
 const fraudWarningVisible = ref(false)
 const fraudWarningMessage = ref('')
 
@@ -521,6 +538,17 @@ const openDialer = () => {
   if (typeof window !== 'undefined') {
     window.location.href = dialPhoneNumber
   }
+}
+
+const applyPromo = () => {
+  const code = promoCode.value.trim()
+  if (!code) {
+    promoMessage.value = 'Enter a promo code to continue.'
+    return
+  }
+
+  promoCode.value = code.toUpperCase()
+  promoMessage.value = `Promo code ${promoCode.value} applied. Your activation offer is ready.`
 }
 
 const openScanner = () => {
@@ -1028,6 +1056,77 @@ onUnmounted(() => { clearInterval(timerInterval) })
   font-size: 0.76rem;
   color: rgba(255,255,255,0.45);
   margin: 0;
+}
+.promo-card {
+  margin: 0 0 1.25rem;
+  padding: 1rem;
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(251,191,36,0.12), rgba(16,185,129,0.12));
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+}
+.promo-card-head {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-bottom: 0.8rem;
+}
+.promo-card-icon {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.08);
+  font-size: 1.1rem;
+}
+.promo-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #fff;
+}
+.promo-subtitle {
+  font-size: 0.76rem;
+  color: rgba(255,255,255,0.6);
+  margin-top: 0.15rem;
+}
+.promo-input-row {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+}
+.promo-input {
+  flex: 1;
+  padding: 0.8rem 0.95rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(0,0,0,0.28);
+  color: #fff;
+  font-size: 0.9rem;
+  outline: none;
+}
+.promo-input:focus {
+  border-color: rgba(251,191,36,0.6);
+  box-shadow: 0 0 0 3px rgba(251,191,36,0.18);
+}
+.promo-btn {
+  padding: 0.8rem 1rem;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #fbbf24, #10b981);
+  color: #050816;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.promo-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(16,185,129,0.24);
+}
+.promo-message {
+  margin: 0.7rem 0 0;
+  font-size: 0.8rem;
+  color: #d1fae5;
 }
 
 /* Price comparison */
