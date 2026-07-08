@@ -10,14 +10,6 @@
         <div class="grid-overlay"></div>
       </div>
 
-      <!-- Live ticker -->
-      <div class="live-ticker">
-        <span class="ticker-dot"></span>
-        <span class="ticker-text">
-          🔴 LIVE — Jean from Kigali just withdrew <strong>120,000 RWF</strong> • Alice earned <strong>+350 RWF</strong> watching videos • {{ liveCount.toLocaleString() }} people earning right now
-        </span>
-      </div>
-
       <div class="container hero-content">
         <div class="hero-left">
           <div class="hero-badge">
@@ -395,23 +387,6 @@ onMounted(() => {
   background-size: 60px 60px;
 }
 @keyframes drift { from { transform: translate(0,0) scale(1); } to { transform: translate(30px,20px) scale(1.08); } }
-
-/* Live ticker */
-.live-ticker {
-  position: relative; z-index: 2;
-  background: rgba(239,68,68,0.1);
-  border-bottom: 1px solid rgba(239,68,68,0.2);
-  padding: 0.6rem 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  font-size: 0.85rem;
-  color: rgba(255,255,255,0.7);
-  overflow: hidden;
-}
-.ticker-dot { width: 8px; height: 8px; background: #ef4444; border-radius: 50%; flex-shrink: 0; animation: blink 1s ease-in-out infinite; }
-.ticker-text strong { color: #fbbf24; }
-@keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0.2; } }
 
 /* Hero content */
 .hero-content {
