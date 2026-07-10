@@ -114,6 +114,16 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  const syncCurrentUser = () => {
+    if (!user.value) return
+
+    const updatedUser = users.value.find(u => u.id === user.value.id)
+    if (updatedUser) {
+      user.value = updatedUser
+      localStorage.setItem('currentUser', JSON.stringify(updatedUser))
+    }
+  }
+
   const loadAllData = async () => {
     const [usersData, videosData, tasksData, transactionsData] = await Promise.all([
       supabase.from('users').select('*').order('created_at', { ascending: false }),
@@ -126,6 +136,7 @@ export const useAuthStore = defineStore('auth', () => {
     videos.value = (videosData.data && videosData.data.length > 0) ? videosData.data : fallbackVideos
     tasks.value = (tasksData.data && tasksData.data.length > 0) ? tasksData.data : fallbackTasks
     transactions.value = transactionsData.data || []
+    syncCurrentUser()
   }
 
   const createRegistrationRecord = async (userId) => {

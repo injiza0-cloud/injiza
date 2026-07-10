@@ -175,7 +175,8 @@
         <div class="insight-card">
           <div class="insight-title">📈 Reward progress</div>
           <p class="insight-note">Current balance: 14,900 RWF</p>
-            <p class="insight-note">Minimum withdrawal: 43,900 RWF</p>
+          <p class="insight-note">Minimum withdrawal: 43,900 RWF</p>
+        </div>
 
         <div class="insight-card">
           <div class="insight-title">🎯 Bonus opportunities</div>

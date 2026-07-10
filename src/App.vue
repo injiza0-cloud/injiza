@@ -36,7 +36,7 @@
             </router-link>
             <div class="header-diamond">
               <span class="diamond-icon">💎</span>
-              <span class="diamond-value">{{ Math.floor((currentUser?.points||0)/100) }}</span>
+              <span class="diamond-value">{{ currentUser?.points || 0 }}</span>
             </div>
             <div class="user-menu">
               <button class="user-avatar" @click="userMenuOpen = !userMenuOpen">
