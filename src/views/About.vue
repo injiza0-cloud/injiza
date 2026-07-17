@@ -139,6 +139,13 @@
                 <p>Backing the best of INJIZA Group Ltd.</p>
               </div>
             </div>
+            <div class="partner-card">
+              <img src="/partners/mizero.svg" alt="Mizero Paterne" />
+              <div>
+                <h4>Mizero Paterne</h4>
+                <p>Official partner — Mizero Paterne</p>
+              </div>
+            </div>
           </div>
         </section>
 

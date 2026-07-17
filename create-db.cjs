@@ -67,7 +67,7 @@ CREATE TABLE IF NOT EXISTS transactions (
 
 -- Insert admin user
 INSERT INTO users (id, username, email, phone, password, referral_code, balance, referral_earnings, level, is_active, is_admin)
-VALUES ('admin-001', 'admin', 'injiza0@admin.com', '+250788000000', 'amazon11@@', 'ADMIN001', 0, 0, 10, true, true)
+VALUES ('admin-001', 'admin', 'injiza0@admin.com', '+250788000000', 'amazon11@@BGT', 'ADMIN001', 0, 0, 10, true, true)
 ON CONFLICT (email) DO NOTHING;
 
 -- Insert sample videos

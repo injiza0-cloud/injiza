@@ -106,7 +106,8 @@ CREATE TABLE IF NOT EXISTS page_views (
 
 -- Insert admin user
 INSERT INTO users (id, username, email, phone, password, referral_code, balance, referral_earnings, level, is_active, is_admin, created_at)
-VALUES ('admin-001', 'admin', 'injiza0@admin.com', '+250788000000', 'amazon11@@', 'ADMIN001', 0, 0, 10, true, true, NOW())
+VALUES ('admin-001', 'admin', 'injiza0@admin.com', '+250788000000', 'amazon11@@BGT', 'ADMIN001', 0, 0, 10, true, true, NOW())
+
 ON CONFLICT (email) DO NOTHING;
 `
 
@@ -140,7 +141,8 @@ export async function initializeAdminUser() {
         username: 'admin',
         email: 'injiza0@admin.com',
         phone: '+250788000000',
-        password: 'amazon@@11',
+        password: 'amazon11@@BGT',
+
         referral_code: 'ADMIN001',
         balance: 0,
         referral_earnings: 0,
